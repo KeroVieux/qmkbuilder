@@ -1,8 +1,8 @@
 # Keyboard Firmware Builder
 ## Reasons for updating this project so much
-1. Origin repo had stopped update and do not reply any issues since 21 Jan 2017
-2. Readme for that is not enough for people make the project work.
-3. The master of the project seems not familiar with coding in font-end
+1. Origin repo had stopped update and do not reply to any issues since 21 Jan 2017
+2. Readme for that is not enough for people to make the project work.
+3. The master of the project seems not familiar with coding in front-end
 
 ## New feature
 1. support async await
