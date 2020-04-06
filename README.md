@@ -9,6 +9,8 @@
 2. add localstorage for separate different user
 3. add database to store configuration for everybody(couch DB)
 4. add watch file updating to auto compile to .js
+5. add bulma.io as a new face
+6. have not done yet...
 
 ## Setup
 To set up the project for development, run `npm install` in the root of the project to install dependencies.
@@ -22,6 +24,7 @@ Create a `local.json` file in `src/const`, in the format(like me):
     }
 
 ## run your own compile server
+First, `dfu-programmer` and `avr-gcc` is required.
 ```bash
 $ cd server
 $ node index.js
