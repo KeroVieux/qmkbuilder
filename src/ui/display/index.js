@@ -50,6 +50,12 @@ class Display extends React.Component {
 	 *
 	 * @return {Function} A function that can be used for an onClick event.
 	 */
+	onKeyClickBack() {
+		const state = this.props.state;
+		state.update({
+			screen: C.SCREEN_MAIN
+		})
+	}
 	onKeyClick(key) {
 		const state = this.props.state;
 		const keyboard = state.keyboard;
@@ -98,6 +104,7 @@ class Display extends React.Component {
 		const keySize = state.ui.get('keySize', C.KEY_SIZE);
 
 		const className = classNames(
+			'tc',
 			'display',
 			{ 'valid': keyboard.valid });
 
@@ -107,27 +114,37 @@ class Display extends React.Component {
 			marginTop: state.screen === C.SCREEN_WIRING ? '2rem' : '0'
 		};
 
-		return <div className='display-wrapper'>
-			<h4>Board Size&nbsp;&nbsp;&nbsp;</h4>
-			<button
-				className='small light'
-				onClick={ this.zoom(-1) }>
-				<i className='fa fa-search-minus'/>
-			</button>
-			&nbsp;
-			<button
-				className='small light'
-				onClick={ this.zoom(1) }>
-				<i className='fa fa-search-plus'/>
-			</button>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-			<h4>Flip&nbsp;&nbsp;</h4>
-			<input
-				type='checkbox'
-				checked={ state.ui.get('display-flip', false) }/>
-			<label
-				onClick={ () => { state.ui.set('display-flip', !state.ui.get('display-flip', false)) } }/>
-			<br/><br/>
+		return <div>
+			<div className="columns">
+				<div className="column">
+					<button onClick={ () => this.onKeyClickBack() } className='button m-r-5'><i className="fa fa-chevron-left m-r-5"></i> back</button>
+				</div>
+				<div className="column is-1">
+					<div className="field has-addons">
+						<p className="control">
+							<button
+								className='button'
+								onClick={ this.zoom(-1) }>
+								<i className='fa fa-search-minus'/>
+							</button>
+						</p>
+						<p className="control">
+							<button
+								className='button'
+								onClick={ this.zoom(1) }>
+								<i className='fa fa-search-plus'/>
+							</button>
+						</p>
+					</div>
+				</div>
+				<div className="column tr">
+					<label className="checkbox" onClick={ () => { state.ui.set('display-flip', !state.ui.get('display-flip', false)) } }>
+						<input type="checkbox" checked={ state.ui.get('display-flip', false) } className="m-r-5"/>
+						Flip
+					</label>
+				</div>
+			</div>
+			<div className="p-b-30" />
 			<div
 				className={ className }
 				style={ style }>

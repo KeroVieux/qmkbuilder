@@ -17,7 +17,7 @@ class Quantum extends React.Component {
 			Edit custom Quantum functions.
 			<div style={{ height: '0.5rem' }}/>
 			<button
-				className='light'
+				className='button'
 				onClick={ () => { keyboard.quantum = C.QUANTUM_DEFAULT; state.update(); } }>
 				Reset to default
 			</button>

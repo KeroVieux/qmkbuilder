@@ -114,18 +114,14 @@ class Compile extends React.Component {
 		const keyboard = state.keyboard;
 
 		return <div className='pane-compile'>
-			Download the .hex file to flash to your keyboard.
-			<div style={{ height: '0.5rem' }}/>
 			<button
+				className='button is-warning m-r-5'
 				disabled={ !keyboard.valid || state.ui.get('compile-working', false) }
 				onClick={ this.downloadHex }>
 				Download .hex
 			</button>
-			<div style={{ height: '1.5rem' }}/>
-			Or download the source files.
-			<div style={{ height: '0.5rem' }}/>
 			<button
-				className='light'
+				className='button is-danger'
 				disabled={ !keyboard.valid || state.ui.get('compile-working', false) }
 				onClick={ this.downloadZip }>
 				Download .zip

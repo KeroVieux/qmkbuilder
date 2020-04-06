@@ -5,7 +5,9 @@ const Keyboard = require('state/keyboard');
 const C = require('const');
 const Utils = require('utils');
 
-const Request = require('superagent');
+const _ = require('lodash');
+const axios = require('axios');
+const store = require('store')
 
 class Main extends React.Component {
 
@@ -15,7 +17,36 @@ class Main extends React.Component {
 		// Bind functions.
 		this.upload = this.upload.bind(this);
 		this.useKLE = this.useKLE.bind(this);
-		this.usePreset = this.usePreset.bind(this);
+		this.setUser = this.setUser.bind(this);
+		this.componentDidMount = this.componentDidMount.bind(this);
+	}
+
+	async componentDidMount() {
+		const state = this.props.state;
+		const user = store.get('user')
+		if (user) {
+			state.ui.set('user', user)
+		}
+		const res = await axios.post(`${state.C.LOCAL.DB_URL}/${state.C.LOCAL.DB_NAME}/_find`, {
+			sort: [{
+				updatedAt: 'desc'
+			}],
+			limit: 1000,
+			selector: {
+				$or:[
+					{
+						status: { $gt: 1 }
+					},
+					{
+						user,
+					}
+				]
+			},
+		})
+		state.update({
+			kbdList: res.data.docs,
+		})
+
 	}
 
 	/*
@@ -29,9 +60,6 @@ class Main extends React.Component {
 			try {
 				// Deserialize the contents.
 				const deserialized = JSON.parse(contents);
-
-				// Ensure the version is correct.
-				if (deserialized.version !== C.VERSION) throw 'version mismatch';
 
 				// Build a new keyboard.
 				const keyboard = Keyboard.deserialize(state, deserialized.keyboard);
@@ -60,7 +88,7 @@ class Main extends React.Component {
 			const keyboard = new Keyboard(state, json);
 
 			// Make sure the data is valid.
-			if (keyboard.keys.length == 0) {
+			if (keyboard.keys.length === 0) {
 				throw 'empty layout';
 			}
 
@@ -73,78 +101,76 @@ class Main extends React.Component {
 			state.error('Invalid layout');
 		}
 	}
+	setUser() {
+		const state = this.props.state;
+		store.set('user', state.ui.get('user'))
+		this.componentDidMount()
+	}
 
 	/*
 	 * Use a preset.
 	 *
 	 * @param {String} id The id of the preset.
 	 */
-	usePreset(id) {
+	useCloudPreset(index) {
 		const state = this.props.state;
-
-		Request
-			.get(C.LOCAL.PRESETS + id + '.json')
-			.end((err, res) => {
-				if (err) return state.error('Unable to load preset.');
-
-				try {
-					// Deserialize the contents.
-					const deserialized = JSON.parse(res.text);
-
-					// Ensure the version is correct.
-					if (deserialized.version !== C.VERSION) throw 'version mismatch';
-
-					// Build a new keyboard.
-					const keyboard = Keyboard.deserialize(state, deserialized.keyboard);
-
-					state.update({
-						keyboard: keyboard,
-						screen: C.SCREEN_KEYMAP // Switch to the keymap screen.
-					});
-				} catch (e) {
-					console.error(e);
-					state.error('Invalid configuration');
-				}
-			});
+		const deserialized = state.kbdList[index].content;
+		const keyboard = Keyboard.deserialize(state, deserialized.keyboard);
+		state.update({
+			currentKbd: state.kbdList[index],
+			keyboard: keyboard,
+			screen: C.SCREEN_KEYMAP // Switch to the keymap screen.
+		});
 	}
 
 	render() {
 		const state = this.props.state;
 
 		return <div>
-			<h3>Upload Keyboard Firmware Builder configuration</h3>
-			<button
-				className='block'
-				onClick={ this.upload }>
-				Upload
-			</button>
-			<br/><br/>
-			<h3>Or import from keyboard-layout-editor.com</h3>
-			<textarea
-				className='kle'
-				placeholder='Paste layout here...'
-				value={ state.ui.get('kle', '') }
-				onChange={ state.ui.set('kle') }/>
-			<button
-				className='block'
-				onClick={ this.useKLE }>
-				Import
-			</button>
-			<br/><br/>
-			<h3>Or choose a preset layout</h3>
-			{(() => {
-				const presets = [];
-				for (const preset in C.PRESETS) {
-					presets.push(<button
-						className='light block'
-						onClick={ () => this.usePreset(preset) }
-						key={ preset }>
-						{ C.PRESETS[preset] }
-					</button>);
-					presets.push(<div style={{ height: '0.5rem' }} key={ '-key-' + preset }/>);
-				}
-				return presets;
-			})()}
+			<div className='columns'>
+				<div className='column'>
+					<div className="field has-addons">
+						<div className="control is-expanded">
+							<input className="input" type="text"
+								   placeholder="set your name"
+								   value={ state.ui.get('user', '') }
+								   onChange={ state.ui.set('user') }/>
+						</div>
+						<div className="control">
+							<a className="button is-warning" onClick={ this.setUser }>
+								Set
+							</a>
+						</div>
+					</div>
+					<textarea
+						className='textarea m-b-5'
+						placeholder='Paste layout here...'
+						value={ state.ui.get('kle', '') }
+						onChange={ state.ui.set('kle') }/>
+					<button
+						className='button is-fullwidth is-primary m-b-5'
+						onClick={ this.useKLE }>
+						Import KLE configuration
+					</button>
+				</div>
+				<div className='column'>
+					<button
+						className='button is-fullwidth is-primary is-outlined m-b-5'
+						onClick={ this.upload }>
+						Upload Local configuration
+					</button>
+					{(() => {
+						return _.map(state.kbdList, (item, index) => {
+							return <button
+								className='button is-fullwidth m-b-5'
+								onClick={ () => this.useCloudPreset(index) }
+								key={ index }>
+								{ item.name }
+							</button>
+						});
+					})()}
+				</div>
+			</div>
 		</div>;
 	}
 

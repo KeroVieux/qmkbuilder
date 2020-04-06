@@ -238,18 +238,19 @@ class Editor extends React.Component {
 
 		return <div>
 			<button
+				className='button'
 				onClick={ this.addAction }>
 				Add Action
 			</button>
 			&nbsp;&nbsp;
 			<button
-				className={ classNames('light pane-macros-editor-record', { 'recording': this.state.recording }) }
+				className={ classNames('button pane-macros-editor-record', { 'recording': this.state.recording }) }
 				onClick={ e => this.state.recording ? this.stopRecording() : this.startRecording(e) }>
 				{ this.state.recording? 'Stop Recording' : 'Record Macro' }
 			</button>
 			&nbsp;&nbsp;
 			<button
-				className='light'
+				className='button'
 				onClick={ this.clear }>
 				Clear Macro
 			</button>

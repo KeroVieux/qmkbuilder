@@ -5,6 +5,9 @@ const Help = require('ui/elements/help');
 
 const C = require('const');
 const Utils = require('utils');
+const moment = require('moment');
+const axios = require('axios');
+const _ = require('lodash');
 
 class Settings extends React.Component {
 
@@ -13,6 +16,47 @@ class Settings extends React.Component {
 
 		// Bind functions.
 		this.save = this.save.bind(this);
+		this.saveToCloud = this.saveToCloud.bind(this);
+	}
+	async saveToCloud() {
+		const state = this.props.state;
+		const keyboard = state.keyboard;
+
+		// Get a friendly name for the keyboard.
+		const friendly = keyboard.settings.name ? Utils.generateFriendly(keyboard.settings.name) : 'layout';
+
+		// Serialize the keyboard.
+		const serialized = keyboard.serialize();
+		const data = {
+			name: friendly,
+			content: {
+				version: C.VERSION,
+				keyboard: serialized
+			},
+			user: state.ui.get('user'),
+			status: 1,
+			createdAt: moment().valueOf(),
+			updatedAt: moment().valueOf(),
+		}
+		if (state.currentKbd && state.currentKbd._id) {
+
+			const res = await axios.put(`${state.C.LOCAL.DB_URL}/${state.C.LOCAL.DB_NAME}/${state.currentKbd._id}`, _.assign(data, {
+				_rev: state.currentKbd._rev,
+			}))
+			data._rev = res.data.rev
+			state.update({
+				currentKbd: data
+			})
+			alert('updated success')
+		} else {
+			const uuidRes = await axios.get(`${state.C.LOCAL.DB_URL}/_uuids`)
+			const uuid = uuidRes.data.uuids[0]
+			await axios.put(
+				`${state.C.LOCAL.DB_URL}/${state.C.LOCAL.DB_NAME}/${uuid}`,
+				data
+			);
+			alert('insert success')
+		}
 	}
 
 	/*
@@ -132,9 +176,16 @@ class Settings extends React.Component {
 			<div style={{ height: '1.5rem' }}/>
 			Save your layout.
 			<div style={{ height: '0.5rem' }}/>
-			<button onClick={ this.save }>
-				Save Configuration
+			<button onClick={ this.save }  className="button is-warning m-r-5">
+				Save To Local
 			</button>
+			{
+				state.ui.get('user') ?
+					<button onClick={ this.saveToCloud } className="button is-primary">
+						Save To Cloud
+					</button> : null
+			}
+
 			<div style={{ height: '1.5rem' }}/>
 			Check errors and warnings.
 			<div style={{ height: '0.5rem' }}/>
